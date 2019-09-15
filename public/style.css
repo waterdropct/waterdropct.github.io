@@ -1,0 +1,103 @@
+body {
+    padding: 0;
+    margin: 0;
+    position: relative;
+    font-family: Tahoma, "PingFang SC", "Microsoft YaHei", sans-serif;
+    font-size: 14px;
+    line-height: 2;
+    color: #555;
+    background: #fff;
+}
+.header {
+    width: 100%;
+}
+.header .header-inner {
+    background: url('./images/header.jpg');
+    background-size: 100% 100%;
+}
+.header .header-title {
+    width: 100%;
+    padding: 100px 0;
+    text-align: center;
+    line-height: 36px;
+    font-size: 20px;
+    font-weight: normal;
+}
+.header .header-title a {
+    color: #FFF;
+    text-decoration: none;
+}
+.main{
+    margin: 20px 100px;
+    margin-bottom: 0;
+}
+.main .main-inner {
+    min-width: 700px;
+    margin: 0 auto;
+}
+.main .content-item{
+    padding-bottom: 20px;
+}
+.main .content-title{
+    text-align: center;
+    margin: 0;
+}
+.main .content-title a{
+    text-decoration: none;
+    font-size: 18px;
+    color: #555;
+    font-weight: 400;
+}
+.main .content-index .content-title a:hover {
+    color: #00a4ff;
+}
+.main .content-createTime{
+    margin: 0;
+    color: #999;
+    font-size: 12px;
+    text-align: center;
+}
+.main .content-createTime img {
+    vertical-align: text-bottom;
+    margin-right: 5px;
+}
+.main .content-description{
+    width: 100%;
+    padding-bottom: 20px;
+}
+.main .content-description img{
+    width:70%;
+}
+.footer {
+    width: 100%;
+    padding: 10px 0;
+    color: #999;
+}
+.footer-link, .footer-info {
+    text-align: center;
+}
+.footer-link > div {
+    display: inline-block;
+    margin: 0 5px;
+}
+.footer img {
+    vertical-align: text-bottom;
+    cursor: pointer;
+}
+.footer a {
+    text-decoration: none;
+    color: #999;
+}
+  /* 自定义滚动条 */
+::-webkit-scrollbar {/*滚动条整体样式*/
+    width: 5px;     /*高宽分别对应横竖滚动条的尺寸*/
+    height: 5px;
+}
+::-webkit-scrollbar-thumb {/*滚动条里面小方块*/
+    border-radius: 10px;
+    background: #999;
+}
+::-webkit-scrollbar-track {/*滚动条里面轨道*/
+    border-radius: 10px;
+    background: #fff;
+}

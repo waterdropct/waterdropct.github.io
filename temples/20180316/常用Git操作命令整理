@@ -1,0 +1,50 @@
+# 常用Git操作命令整理
+
+**秋招结束后放松了几个月，准备写个小项目的时候，发现一些常用的 Git 操作都忘了。[官方Git文档](https://git-scm.com/book/en/v2)有中文版本，内容比较详细，但不适合快速查找操作命令，所以就整理了一下. **
+
+** 仓库操作 **
+
+	克隆仓库：$ git clone git://github.com/jquery/jquery.git
+	查看远程仓库：$ git remote -v
+	添加远程仓库：$ git remote add [name] [url]
+	删除远程仓库：$ git remote rm [name]
+	修改远程仓库：$ git remote set-url --push[name][newUrl]
+	拉取远程仓库：$ git pull [remoteName] [localBranchName]
+	推送远程仓库：$ git push [remoteName] [localBranchName]
+
+** 分支操作 **
+
+	查看本地分支：$ git branch
+	查看远程分支：$ git branch -r
+	创建本地分支：$ git branch [branchName] ----注意新分支创建后不会自动切换为当前分支
+	切换分支：$ git checkout [branchName]
+	创建新分支并立即切换到新分支：$ git checkout -b [branchName]
+	合并分支：$ git merge [branchName] ----将名称为[branchName]的分支与当前分支合并
+	删除本地分支：$ git branch -d [branchName] ---- -d选项只能删除已经参与了合并的分支，对于未有合并的分支是无法删除的。如果想强制删除一个分支，可以使用-D选项
+	删除远程分支：$ git push [remoteName] --delete [branchName]
+	本地分支push到远程：$ git push [remoteName] [branchName]
+	本地分支push到远程还未创建的分支：$ git push [remoteName] [branchName]:[branchName]
+
+** 版本操作 **
+
+	查看当前仓库文件状态：$ git status
+	将修改文件保存到暂存区：$ git add [file or files]
+	将更改记录提交到存储库：$ git commit -m [msg]
+	版本回退：$ git reset --hard [commitId]
+	
+	代码储藏：$ git stash ---- 比如正在当前分支操作，需要临时切换到其他分支操作，但是又不想commit当前的变动，就可以使用该功能，具体的用法见（https://git-scm.com/book/zh/v1/Git-%E5%B7%A5%E5%85%B7-%E5%82%A8%E8%97%8F%EF%BC%88Stashing%EF%BC%89）
+	
+	查看提交历史：$ git log [-p | -n] ---- -p参数用来显示每次提交的内容差异， -n参数表示只显示最近的n次提交， 访问(https://git-scm.com/book/zh/v2/Git-%E5%9F%BA%E7%A1%80-%E6%9F%A5%E7%9C%8B%E6%8F%90%E4%BA%A4%E5%8E%86%E5%8F%B2)可以查看更多可配置参数
+
+** 常见问题 **
+
+**1.由于某些原因需要回退代码**：先 git log操作，找到需要回退到的版本以及对应的commitId(一般取前6位就ok了)，然后执行 git reset --hard [commitId]。
+
+**2.代码冲突**：不管是pull远程仓库的代码还是merge分支，如果出现冲突，在解决冲突后需要 commit 一次，才能继续后面的操作。 
+
+**3.修改了文件部分内容后又不想要这些修改了**：无论该文件的修改状态是处于工作区还是暂存区，执行 git status，然后直接看控制台输出的提示就清楚如何操作了。
+
+**4.子模块**：当你在一个项目上工作时，你需要在其中使用另外一个项目。也许它是一个第三方开发的库或者是你独立开发和并在多个父项目中使用的。这个场景下一个常见的问题产生了：你想将两个项目单独处理但是又需要在其中一个中使用另外一个。目前我还遇到过这种场景，不过可前往[Git官方手册](https://git-scm.com/book/zh/v2/Git-%E5%B7%A5%E5%85%B7-%E5%AD%90%E6%A8%A1%E5%9D%97)了解更多。
+
+
+**最后强烈推荐使用 [Visual Studio Code](https://code.visualstudio.com/)代码开发工具，装上各种插件配合使用，功能非常强大，效果顶呱呱。特别是Git History插件，可视化界面，Diff对比，快速定位，简直Git神器。**

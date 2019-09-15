@@ -1,0 +1,100 @@
+AngularJs 1.x 性能优化实践
+
+------
+
+内部项目目前还是使用的angularjs 1.x，并且随着开发需求的增加页面更加复杂，如何提升页面性能是需要优先考虑的。在开发的过程中会查阅一些技术文档，也会请教经验丰富的同事，逐渐积累一些性能优化的技巧，并最终在实践中恰当的运用。
+
+### 一.数据绑定更新机制
+首先需要明确的是，AngularJs的数据更新机制并不是定时的去检查数据有没有变化，而是在指定的事件触发后，才会进入$digest状态。下面四种情况会触发：
+
+> * UI界面操作
+> * Ajax请求
+> * `$timeout` 、`$interval`
+> * 手动调用`$apply()`
+
+AngularJs为scope 模型上设置了一个监听队列，用来监听数据变化并更新视图view。每绑定一个变量到html上时，AngularJs就会往`$watchList`队列里插入一条`$watch`，用来检测它监视的model是否有变化。一旦触发`$digest`循环后，会遍历所有的 `$watch`，从而更新DOM。
+
+`$digest`循环检查超过10次就会抛出异常，防止无限循环。正常情况下，第一次`$digest`检查，查询每个`$watch` 是否变化，若当前`$watch`监视的model当前值与上一次的值不同，则会触发对应的回调函数。`$digest`检查至少会执行两次，因为需要第二次`$digest`检查保证不再有`$watch`变化，若是还有变化，则需要第三次`$digest`检查，直到最终不再有变化。如果`$digest`超过10次，那么代码逻辑需要重新梳理了。
+
+**请注意**：：有时候当我们使用`setTimeOut`或者`setInterVal`时，要想view更新，则需要手动调用`$apply()`，但有时候控制台会打印出`$apply already in progress`，这是因为当前其他的操作触发了`$digest`正在检查。所以使用的时候需要先判断一下，`$scope`中提供了一个`$$phase`变量，如果这个变量的值是"`$digest`" 或者"`$apply`"，就代表angular自身已经在检查了，不需要我们手动调用了。
+
+### 二.性能优化
+#### 1. 优化ng-repeat
+对于需要repeate的数据，尽量在赋值给`$scope`之前就一次性处理好，避免边赋值边处理数据。
+当需要repeate的变量的值有变化时，会导致AngularJs移除掉所有的DOM，重新创建和渲染。如果我们加上 track by id (每条数据的id是唯一的，如果是从数据库取的数据，通常可以用主键作为id，不推荐使用 $index 作为 track by 的字段)，AngularJs就能复用原DOM进行更新，减少不必要的销毁和重新创建。
+对于需要展示的数据条数比较多的时候，尽量使用分页，这块深有体会。
+
+------
+
+#### 2. 使用单次绑定
+AngularJs通常建议一个页面最多2000个双向绑定，不要以为够用，实际上如果ng-repeat的数据比较多，就很容易超标的。在实际开发中，很多变量绑定后，后续是不会做改动的，比如每条新闻的作者、时间、标题等，那么此时就可以使用单次绑定，减少 $watch 表达式的数量，通常是跟ng-repeat搭配使用。用法如下：
+```
+<li ng-repeat="item in array track by item.id">
+  <div>author: <span ng-bind="::item.author"></span></div>
+  <div>time: <span ng-bind="::item.time"></span></div>
+  <div>title: <span ng-bind="::item.title"></span></div>
+</li>
+```
+**请注意**：除非 track by 字段改变造成的 DOM 树重建，单次绑定的item.XXX 一旦显示在页面上后就不会再被监视。如果在 ng-repeat 内部使用的单次绑定，就一定不要用 track by $index，否则用户切换下一页后页面也不会更新，因为每次默认生成的`$$hashKey`进行对比都是一样的。
+
+------
+
+#### 3. 切换隐藏与显示
+ng-hide 和 ng-show 只是简单地对CSS display属性进行切换。这意味着表面上看不见的东西其实还存在于当前`$scope`域中， 所有的$$watchers还是会被触发。
+
+ng-if 和 ng-switch实际上从DOM中完全移除了，相应的域也会被移除，性能差异显而易见。
+
+**请注意**：如果 ng-if 之后表达式的值变化的比较频繁，对应 scope 的创建和销毁也就会比较频繁，那么此时就应该考虑使用ng-show了。
+
+------
+
+#### 4. `$apply`与`$digest`与`$evalAsync`
+前面提到过，如果使用setTimeout之类的，需要使用`$apply`去手动触发更新。`$apply`会触发`$rootScope.$digest()`,并从`$rootScope`开始遍历检查数据变更，访问所有的children scope中的$$watchers。调用$apply()的时候，应该总是要传入函数参数,因为这个函数在调用的时候是包含在try..catch中的，任何发生的异常都能够被`$exceptionHandler`服务所接收。
+
+`$digest`仅会检查该scope和它的子scope，当你确定当前操作仅影响它们时，用`$digest`可以稍微提升性能。
+
+`$evalAsync`性能更好,如果当前正好有一个digest循环在执行，那么它就会把导致digest循环的操作，放到当前digest循环中去执行。
+
+**请注意**：尽量用`$timeout`去代替你的setTimeout,`$timeout`是Angularjs的自带服务，会等到当前digest循环执行完，再执行一次digest循环。
+
+------
+
+#### 5.`event`和`$watch`
+`$broadcast`：从父级作用域传播至子级作用域。
+
+`$emit`：从子级作用域传播直至根作用域。
+
+`$on`：监控从子级或父级作用域中传播的事件。
+
+对于同级之间的传递，可以使用`$rootScope.$broadcast`，也可以使用`$scope.$parent.$broadcast`。
+
+`$destory`: 当前的scope域如果有`$rootScope`上或者`window`上的监听事件，当页面切换时它们不会被释放，因此可以在$destory销毁事件触发的时候删除监听事件。
+
+`$watch`: 对于不必要的`$watch`需要及时移除，并且尽量减少操作DOM。
+
+**请注意**：当用`$emit`时，可以使用 stopPropagation() 阻止冒泡事件，代码如下：
+```
+$scope.$on(XXX, function (event, data) {
+  event.stopPropagation();
+});
+```
+但是使用`$broadcast`的preventDefault() 并不能阻止事件向下传递，不过可以把defaultPrevented标志设置为true，然后就可以让子级不用理会该事件了，代码如下：
+```
+app.controller("SecondController",function($scope) {
+    $scope.$on('to-child',function(event) {
+        event.preventDefault();
+    });
+});
+app.controller("ThirdController",function($scope) {
+    $scope.$on('to-child',function(event) {
+        if(!event.defaultPrevented){
+        //处理
+        }
+    });
+});
+```
+
+------
+
+#### 6. 懒加载
+既然是单页应用 ，那么随着项目越来越复杂，代码越来越多，而最终都会被打包到一个文件中，页面初次加载的时候非常的慢。那么就得实行按需加载，即只有当用户访问某个模块的时候，该模块的脚本才会加载。通常是使用ui-router并结合ocLazyLoad来完成angular模块的懒加载，具体用法可以去官网查看

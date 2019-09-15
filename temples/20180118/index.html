@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+    <title>Vim的常见用法</title>
+    <link rel='stylesheet' href='../../public/markdown.min.css' />
+    <link rel='stylesheet' href='../../public/style.css' />
+    <link rel="icon" type="image/png" href="../../public/images/icon.png" sizes="32x32">
+    <meta name="description"
+        content="个人博客网站，专注于分享技术知识，包括但不限于HTML5、CSS3、JavaScript、Nodejs、Linux、Python、Nginx、React、Vue、Angular">
+    <meta name="keywords"
+        content="个人、博客、技术、互联网、分享、笔记、前端开发、HTML5、CSS3、JavaScript、Nodejs、Linux、Python、Nginx、React、Vue、Angular">
+</head>
+
+<body>
+    <header class="header">
+        <div class="header-inner">
+            <div class="header-title">
+                <a href="../../">致力于分享与进步</a>
+            </div>
+        </div>
+    </header>
+    <main class="main">
+        <div class="main-inner">
+            <div class="content-item">
+                <p class="content-title"><a>Vim的常见用法</a></p>
+                <p class="content-createTime"><img src="../../public/images/date.svg" alt="date">发表于 2018-01-18</p>
+            </div>
+            <div class="content-description">
+                <p>外出实习的时候，团队内部开发代码的工具并不是VsCode、Sublime等编辑器，而是直接在服务器上使用Vim编辑器，并配置了JS高亮、检查等功能，然后结合 Git 和
+                    Nginx，实现快速检查和部署。刚开始的时候确实不习惯，因为Vim的一些操作命令太多了，使用起来太生疏，不过慢慢也就熟悉起来了。实习早已结束，故整理一下常见的操作，虽然以后不会频繁使用，但是偶尔使用云服务器进行配置或上线的时候，还是会用到部分知识的。
+                </p>
+                <hr>
+                <p><strong>光标</strong></p>
+                <pre class="prettyprint linenums prettyprinted"
+                    style=""><ol class="linenums"><li class="L0"><code><span class="pln">h </span><span class="pun">-</span><span class="pln"> </span><span class="pun">左移光标</span></code></li><li class="L1"><code><span class="pln">j </span><span class="pun">-</span><span class="pln"> </span><span class="pun">下移光标</span></code></li><li class="L2"><code><span class="pln">k </span><span class="pun">-</span><span class="pln"> </span><span class="pun">上移光标</span></code></li><li class="L3"><code><span class="pln">l </span><span class="pun">-</span><span class="pln"> </span><span class="pun">右移光标</span></code></li><li class="L4"><code><span class="lit">0</span><span class="pln"> </span><span class="pun">-</span><span class="pln"> </span><span class="pun">移动到行首</span></code></li><li class="L5"><code><span class="pln">$ </span><span class="pun">-</span><span class="pln"> </span><span class="pun">移动到行尾</span></code></li><li class="L6"><code><span class="pln">H </span><span class="pun">-</span><span class="pln"> </span><span class="pun">移动到当前页面顶部</span></code></li><li class="L7"><code><span class="pln">M </span><span class="pun">-</span><span class="pln"> </span><span class="pun">移动到当前页面中间</span></code></li><li class="L8"><code><span class="pln">L </span><span class="pun">-</span><span class="pln"> </span><span class="pun">移动到当前页面底部</span></code></li><li class="L9"><code><span class="pln">w </span><span class="pun">-</span><span class="pln"> </span><span class="pun">移动到下个单词开头</span></code></li><li class="L0"><code><span class="pln">e </span><span class="pun">-</span><span class="pln"> </span><span class="pun">移动到下个单词结尾</span></code></li><li class="L1"><code><span class="pln">b </span><span class="pun">-</span><span class="pln"> </span><span class="pun">移动到上个单词结尾</span></code></li><li class="L2"><code><span class="pln">gg </span><span class="pun">-</span><span class="pln"> </span><span class="pun">移动到文件第一行</span></code></li><li class="L3"><code><span class="pln">G </span><span class="pun">-</span><span class="pln"> </span><span class="pun">移动到文件最后一行</span></code></li><li class="L4"><code><span class="lit">3G</span><span class="pln"> </span><span class="pun">-</span><span class="pln"> </span><span class="pun">移动到第三行</span></code></li></ol></pre>
+                <p><strong>插入-退出</strong></p>
+                <pre class="prettyprint linenums prettyprinted"
+                    style=""><ol class="linenums"><li class="L0"><code><span class="pln">i </span><span class="pun">-</span><span class="pln"> </span><span class="pun">从光标前开始插入字符</span></code></li><li class="L1"><code><span class="pln">I </span><span class="pun">-</span><span class="pln"> </span><span class="pun">从行首开始插入字符</span></code></li><li class="L2"><code><span class="pln">a </span><span class="pun">-</span><span class="pln"> </span><span class="pun">从光标后开始插入字符</span></code></li><li class="L3"><code><span class="pln">A </span><span class="pun">-</span><span class="pln"> </span><span class="pun">从行尾开始插入字符</span></code></li><li class="L4"><code><span class="pln">o </span><span class="pun">-</span><span class="pln"> </span><span class="pun">在当前行之下另起一行,</span><span class="pln"> </span><span class="pun">开始插入字符</span></code></li><li class="L5"><code><span class="pln">O </span><span class="pun">-</span><span class="pln"> </span><span class="pun">在当前行之上另起一行,</span><span class="pln"> </span><span class="pun">开始插入字符</span></code></li><li class="L6"><code><span class="pln">ea </span><span class="pun">-</span><span class="pln"> </span><span class="pun">从当前单词末尾开始插入</span></code></li><li class="L7"><code><span class="typ">Esc</span><span class="pln"> </span><span class="pun">-</span><span class="pln"> </span><span class="pun">退出插入模式</span></code></li><li class="L8"><code><span class="pun">:</span><span class="pln">w </span><span class="pun">-</span><span class="pln"> </span><span class="pun">保存</span></code></li><li class="L9"><code><span class="pun">:</span><span class="pln">wq </span><span class="kwd">or</span><span class="pln"> </span><span class="pun">:</span><span class="pln">x </span><span class="kwd">or</span><span class="pln"> ZZ </span><span class="pun">-</span><span class="pln"> </span><span class="pun">保存并退出</span></code></li><li class="L0"><code><span class="pun">:</span><span class="pln">q </span><span class="pun">-</span><span class="pln"> </span><span class="pun">退出(修改未保存时警告)</span></code></li><li class="L1"><code><span class="pun">:</span><span class="pln">q</span><span class="pun">!</span><span class="pln"> </span><span class="kwd">or</span><span class="pln"> ZQ </span><span class="pun">-</span><span class="pln"> </span><span class="pun">不保存强制退出</span></code></li></ol></pre>
+                <p><strong>复制-剪切-粘贴</strong></p>
+                <pre class="prettyprint linenums prettyprinted"
+                    style=""><ol class="linenums"><li class="L0"><code><span class="pln">yy </span><span class="pun">-</span><span class="pln"> </span><span class="pun">复制当前行</span></code></li><li class="L1"><code><span class="lit">2yy</span><span class="pln"> </span><span class="pun">-</span><span class="pln"> </span><span class="pun">复制</span><span class="pln"> </span><span class="lit">2</span><span class="pln"> </span><span class="pun">行</span></code></li><li class="L2"><code><span class="pln">yw </span><span class="pun">-</span><span class="pln"> </span><span class="pun">复制当前单词</span></code></li><li class="L3"><code><span class="pln">y$ </span><span class="pun">-</span><span class="pln"> </span><span class="pun">复制,</span><span class="pln"> </span><span class="pun">从光标位置到行末</span></code></li><li class="L4"><code><span class="pln">p </span><span class="pun">-</span><span class="pln"> </span><span class="pun">在光标后粘贴</span></code></li><li class="L5"><code><span class="pln">P </span><span class="pun">-</span><span class="pln"> </span><span class="pun">在光标前粘贴</span></code></li><li class="L6"><code><span class="pln">dd </span><span class="pun">-</span><span class="pln"> </span><span class="pun">剪切当前行</span></code></li><li class="L7"><code><span class="lit">2dd</span><span class="pln"> </span><span class="pun">-</span><span class="pln"> </span><span class="pun">剪切</span><span class="pln"> </span><span class="lit">2</span><span class="pln"> </span><span class="pun">行</span></code></li><li class="L8"><code><span class="pln">dw </span><span class="pun">-</span><span class="pln"> </span><span class="pun">剪切当前单词</span></code></li><li class="L9"><code><span class="pln">D </span><span class="pun">-</span><span class="pln"> </span><span class="pun">剪切,</span><span class="pln"> </span><span class="pun">从光标位置到行末</span></code></li><li class="L0"><code><span class="pln">d$ </span><span class="pun">-</span><span class="pln"> </span><span class="pun">剪切,</span><span class="pln"> </span><span class="pun">从光标位置到行末</span><span class="pln"> </span><span class="pun">(同</span><span class="pln">D</span><span class="pun">)</span></code></li><li class="L1"><code><span class="pln">x </span><span class="pun">-</span><span class="pln"> </span><span class="pun">剪切当前字符</span></code></li><li class="L2"><code><span class="pln">u </span><span class="pun">-</span><span class="pln"> </span><span class="pun">撤销</span></code></li></ol></pre>
+                <p><strong>查找-替换</strong></p>
+                <pre class="prettyprint linenums prettyprinted"
+                    style=""><ol class="linenums"><li class="L0"><code><span class="pun">/</span><span class="pln">pattern </span><span class="pun">-</span><span class="pln"> </span><span class="pun">查找</span><span class="pln">pattern</span></code></li><li class="L1"><code><span class="pun">?</span><span class="pln">pattern </span><span class="pun">-</span><span class="pln"> </span><span class="pun">向上查找</span><span class="pln">pattern</span></code></li><li class="L2"><code><span class="pln">\vpattern </span><span class="pun">-</span><span class="pln"> pattern </span><span class="pun">中的非字母数字字符被视为正则表达式特殊字符</span><span class="pln"> </span><span class="pun">(不需转义字符)</span></code></li><li class="L3"><code><span class="pln">n </span><span class="pun">-</span><span class="pln"> </span><span class="pun">查找下一个</span></code></li><li class="L4"><code><span class="pln">N </span><span class="pun">-</span><span class="pln"> </span><span class="pun">查找上一个</span></code></li><li class="L5"><code><span class="pun">:%</span><span class="pln">s</span><span class="pun">/</span><span class="pln">old</span><span class="pun">/</span><span class="kwd">new</span><span class="pun">/</span><span class="pln">g </span><span class="pun">-</span><span class="pln"> </span><span class="pun">替换全部</span></code></li><li class="L6"><code><span class="pun">:%</span><span class="pln">s</span><span class="pun">/</span><span class="pln">old</span><span class="pun">/</span><span class="kwd">new</span><span class="pun">/</span><span class="pln">gc </span><span class="pun">-</span><span class="pln"> </span><span class="pun">(逐个)替换</span></code></li></ol></pre>
+                <p>欢迎转载，转载请注明出处。</p>
+            </div>
+        </div>
+    </main>
+    <footer class="footer">
+        <div class="footer-link">
+            <div>© 2018 - 2019</div>
+            <div><a target="_blank" href="http://github.com/hcLei"><img src="../../public/images/github.svg"
+                        alt="github"></a></div>
+            <div><a target="_blank"
+                    href="http://mail.qq.com/cgi-bin/qm_share?t=qm_mailme&email=BzY0MTc0Pj81MjFHdnYpZGhq"><img
+                        src="../../public/images/email.svg" alt="email"></a></div>
+        </div>
+        <div class="footer-info">
+            <div><img src="../../public/images/computer.svg" alt="computer"><a target="_blank"
+                    href="http://www.miibeian.gov.cn">渝ICP备16007578号</a></div>
+        </div>
+    </footer>
+</body>
+
+</html>

@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+    <title>云服务器配置Node、MongoDB、Git、Nginx等生产环境</title>
+    <link rel='stylesheet' href='../../public/markdown.min.css' />
+    <link rel='stylesheet' href='../../public/style.css' />
+    <link rel="icon" type="image/png" href="../../public/images/icon.png" sizes="32x32">
+    <meta name="description"
+        content="个人博客网站，专注于分享技术知识，包括但不限于HTML5、CSS3、JavaScript、Nodejs、Linux、Python、Nginx、React、Vue、Angular">
+    <meta name="keywords"
+        content="个人、博客、技术、互联网、分享、笔记、前端开发、HTML5、CSS3、JavaScript、Nodejs、Linux、Python、Nginx、React、Vue、Angular">
+</head>
+
+<body>
+    <header class="header">
+        <div class="header-inner">
+            <div class="header-title">
+                <a href="../../">致力于分享与进步</a>
+            </div>
+        </div>
+    </header>
+    <main class="main">
+        <div class="main-inner">
+            <div class="content-item">
+                <p class="content-title"><a>云服务器配置Node、MongoDB、Git、Nginx等生产环境</a></p>
+                <p class="content-createTime"><img src="../../public/images/date.svg" alt="date">发表于 2018-05-07</p>
+            </div>
+            <div class="content-description">
+                <p>以前陪伴三年的云服务器要到期了，所以最近购置了一台新的腾讯云服务器，使用了腾讯云面向校园大学生的优惠福利。当然云服务器到手后，就要进行一系列的配置，目前打算将一些前端方面的项目上线到新的服务器上，所以需要配置一些相关的环境。<br>首先在网上浏览了很多的配置方法，踩了很多坑，最后总结出了一套合适的配置流程。小小的提一下，对于使用windows系统的电脑，强烈安利一款Windows终端命令行神器<a
+                        href="http://cmder.net/">cmder</a>，透明的背景，舒适的字体，界面非常友善，操作十分流畅。</p>
+                <pre class="prettyprint linenums prettyprinted"
+                    style=""><ol class="linenums"><li class="L0"><code><span class="pun">腾讯云系统版本：</span><span class="pln">centos7</span><span class="pun">.</span><span class="lit">2</span></code></li><li class="L1"><code><span class="typ">Node</span><span class="pun">版本：</span><span class="pln"> </span><span class="pun">-</span><span class="pln">v </span><span class="lit">8.9</span></code></li><li class="L2"><code><span class="typ">Mongodb</span><span class="pun">数据库版本：</span><span class="pln"> </span><span class="pun">-</span><span class="pln">v </span><span class="lit">3.4</span></code></li></ol></pre>
+                <hr>
+                <p><strong>1.Node.js安装</strong></p>
+                <p>为了避免网上因不同版本造成的不同安装方法引发的问题，可以参考Node.js的官方参考链接 <a
+                        href="https://nodejs.org/en/download/package-manager/#enterprise-linux-and-fedora">Installing
+                        Node.js via package manager</a>，V8系列可以使用如下命令行：</p>
+                <pre class="prettyprint linenums prettyprinted"
+                    style=""><ol class="linenums"><li class="L0"><code><span class="pln">curl </span><span class="pun">--</span><span class="pln">silent </span><span class="pun">--</span><span class="pln">location https</span><span class="pun">:</span><span class="com">//rpm.nodesource.com/setup_8.x | sudo bash -</span></code></li></ol></pre>
+                <p>然后用管理员身份执行下列命令</p>
+                <pre class="prettyprint linenums prettyprinted"
+                    style=""><ol class="linenums"><li class="L0"><code><span class="pln">yum </span><span class="pun">-</span><span class="pln">y install nodejs</span></code></li></ol></pre>
+                <p>另外在安装的过程中会出现下面这样的几行代码，网上查了一下后大意是提示我们安装用npm编译安装包时可能需要的依赖，最好也一并安装了。</p>
+                <pre class="prettyprint linenums prettyprinted"
+                    style=""><ol class="linenums"><li class="L0"><code><span class="typ">Optional</span><span class="pun">:</span><span class="pln"> install build tools </span></code></li><li class="L1"><code><span class="typ">To</span><span class="pln"> compile </span><span class="kwd">and</span><span class="pln"> install </span><span class="kwd">native</span><span class="pln"> addons </span><span class="kwd">from</span><span class="pln"> npm you may also need to install build tools</span><span class="pun">:</span></code></li></ol></pre>
+                <p>在终端中输入安装使用的命令：</p>
+                <pre class="prettyprint linenums prettyprinted"
+                    style=""><ol class="linenums"><li class="L0"><code><span class="pln">yum install gcc</span><span class="pun">-</span><span class="pln">c</span><span class="pun">++</span><span class="pln"> make</span></code></li></ol></pre>
+                <p><strong>2.MongoDB数据库安装</strong></p>
+                <pre class="prettyprint linenums prettyprinted"
+                    style=""><ol class="linenums"><li class="L0"><code><span class="pun">本次安装的版本:</span><span class="pln"> v3</span><span class="pun">.</span><span class="lit">6.0</span></code></li></ol></pre>
+                <p>安装方法可以参考MongoDB官方的参考链接: <a
+                        href="https://docs.mongodb.com/manual/tutorial/install-mongodb-on-red-hat/#install-mongodb-community-edition">Install
+                        MongoDB Community Edition on Red Hat Enterprise or CentOS Linux</a>，按照官方的指引，首先需要配置
+                    yum，执行下列命令，新建并编辑配置文件</p>
+                <pre class="prettyprint linenums prettyprinted"
+                    style=""><ol class="linenums"><li class="L0"><code><span class="pln">vim </span><span class="pun">/</span><span class="pln">etc</span><span class="pun">/</span><span class="pln">yum</span><span class="pun">.</span><span class="pln">repos</span><span class="pun">.</span><span class="pln">d</span><span class="pun">/</span><span class="pln">mongodb</span><span class="pun">-</span><span class="pln">org</span><span class="pun">-</span><span class="lit">3.6</span><span class="pun">.</span><span class="pln">repo</span></code></li></ol></pre>
+                <p>在其中输入:</p>
+                <pre class="prettyprint linenums prettyprinted"
+                    style=""><ol class="linenums"><li class="L0"><code><span class="pun">[</span><span class="pln">mongodb</span><span class="pun">-</span><span class="pln">org</span><span class="pun">-</span><span class="lit">3.6</span><span class="pun">]</span></code></li><li class="L1"><code><span class="pln">name</span><span class="pun">=</span><span class="typ">MongoDB</span><span class="pln"> </span><span class="typ">Repository</span></code></li><li class="L2"><code><span class="pln">baseurl</span><span class="pun">=</span><span class="pln">https</span><span class="pun">:</span><span class="com">//repo.mongodb.org/yum/redhat/$releasever/mongodb-org/3.6/x86_64/</span></code></li><li class="L3"><code><span class="pln">gpgcheck</span><span class="pun">=</span><span class="lit">1</span></code></li><li class="L4"><code><span class="pln">enabled</span><span class="pun">=</span><span class="lit">1</span></code></li><li class="L5"><code><span class="pln">gpgkey</span><span class="pun">=</span><span class="pln">https</span><span class="pun">:</span><span class="com">//www.mongodb.org/static/pgp/server-3.6.asc</span></code></li></ol></pre>
+                <p>注意本次安装的是3.6版本，若要安装其他版本请参考官网的详细说明配置。然后输入如下命令进行安装：</p>
+                <pre class="prettyprint linenums prettyprinted"
+                    style=""><ol class="linenums"><li class="L0"><code><span class="pln">sudo yum install </span><span class="pun">-</span><span class="pln">y mongodb</span><span class="pun">-</span><span class="pln">org</span></code></li></ol></pre>
+                <p>最后需要启动服务：</p>
+                <pre class="prettyprint linenums prettyprinted"
+                    style=""><ol class="linenums"><li class="L0"><code><span class="pln">service mongod start </span><span class="com">#启动</span></code></li><li class="L1"><code><span class="pln">service mongod stop </span><span class="com">#停止</span></code></li><li class="L2"><code><span class="pln">service mongod restart </span><span class="com">#重启</span></code></li></ol></pre>
+                <p>注意数据库的配置文件路径:
+                    <code>/etc/mongod.conf</code>。若要自定义数据存储位置和日志的存储位置，可以修改MongoDB的配置文件。<br>启动数据库只需要执行命令：<code>mongo</code>，然后具体的命令行使用方法可以参考官网。
+                </p>
+                <p><strong>3.安装Nginx</strong></p>
+                <p>Nginx在服务器上的作用就不在此多说了，接下来展示具体的安装配置方法。<br>首先在CentOS系统上安装 Nginx ，得先去添加一个资源库，执行： </p>
+                <pre class="prettyprint linenums prettyprinted"
+                    style=""><ol class="linenums"><li class="L0"><code><span class="pln">vim </span><span class="pun">/</span><span class="pln">etc</span><span class="pun">/</span><span class="pln">yum</span><span class="pun">.</span><span class="pln">repos</span><span class="pun">.</span><span class="pln">d</span><span class="pun">/</span><span class="pln">nginx</span><span class="pun">.</span><span class="pln">repo</span></code></li></ol></pre>
+                <p>注意nginx.repo文件不存在就会默认创建，进入Vim的编辑模式，然后复制粘贴下面这几行代码，完成以后保存并退出：</p>
+                <pre class="prettyprint linenums prettyprinted"
+                    style=""><ol class="linenums"><li class="L0"><code><span class="pun">[</span><span class="pln">nginx</span><span class="pun">]</span></code></li><li class="L1"><code><span class="pln">name</span><span class="pun">=</span><span class="pln">nginx repo</span></code></li><li class="L2"><code><span class="pln">baseurl</span><span class="pun">=</span><span class="pln">http</span><span class="pun">:</span><span class="com">//nginx.org/packages/centos/$releasever/$basearch/</span></code></li><li class="L3"><code><span class="pln">gpgcheck</span><span class="pun">=</span><span class="lit">0</span></code></li><li class="L4"><code><span class="pln">enabled</span><span class="pun">=</span><span class="lit">1</span></code></li></ol></pre>
+                <p>然后就可以使用 yum 命令去安装 nginx 了</p>
+                <pre class="prettyprint linenums prettyprinted"
+                    style=""><ol class="linenums"><li class="L0"><code><span class="pln">yum install nginx</span></code></li></ol></pre>
+                <p>安装完后一定要记得执行<code>nginx -t</code>命令测试Nginx的配置文件是不是正确，终端会打印出配置文件是否写得正确，同时也显示了配置文件的路径：</p>
+                <pre class="prettyprint linenums prettyprinted"
+                    style=""><ol class="linenums"><li class="L0"><code><span class="pln">nginx</span><span class="pun">:</span><span class="pln"> the configuration file </span><span class="pun">/</span><span class="pln">etc</span><span class="pun">/</span><span class="pln">nginx</span><span class="pun">/</span><span class="pln">nginx</span><span class="pun">.</span><span class="pln">conf syntax </span><span class="kwd">is</span><span class="pln"> ok</span></code></li><li class="L1"><code><span class="pln">nginx</span><span class="pun">:</span><span class="pln"> configuration file </span><span class="pun">/</span><span class="pln">etc</span><span class="pun">/</span><span class="pln">nginx</span><span class="pun">/</span><span class="pln">nginx</span><span class="pun">.</span><span class="pln">conf test </span><span class="kwd">is</span><span class="pln"> successful</span></code></li></ol></pre>
+                <p>打印如上就说明配置文件成功！最后启动时直接在终端输入命令：</p>
+                <pre class="prettyprint linenums prettyprinted"
+                    style=""><ol class="linenums"><li class="L0"><code><span class="str">/usr/</span><span class="pln">sbin</span><span class="pun">/</span><span class="pln">nginx</span></code></li></ol></pre>
+                <p>然后在浏览器里输入主机的ip地址，看看有没有welcome to nginx!的页面。注意，一旦修改了nginx的配置文件之后，为了保证配置生效需要输入重启命令：</p>
+                <pre class="prettyprint linenums prettyprinted"
+                    style=""><ol class="linenums"><li class="L0"><code><span class="str">/usr/</span><span class="pln">sbin</span><span class="pun">/</span><span class="pln">nginx </span><span class="pun">-</span><span class="pln">s reload</span></code></li></ol></pre>
+                <p>nginx的配置文件是<code>/etc/nginx/nginx.conf</code>，打开之后会看到关于server的配置被写<code>/etc/nginx/conf.d/default.conf</code>中，然后被include进了nginx.conf。因此需要修改<code>default.conf</code>的信息（有可能修改完后会提示is
+                    read-only (add ! to override)，那么需要获取root权限后再进行编辑）：</p>
+                <pre class="prettyprint linenums prettyprinted"
+                    style=""><ol class="linenums"><li class="L0"><code><span class="pln">server </span><span class="pun">{</span></code></li><li class="L1"><code><span class="pln"> listen </span><span class="lit">80</span><span class="pun">;</span></code></li><li class="L2"><code><span class="pln"> server_name your_name</span><span class="pun">;</span><span class="pln"> </span><span class="com">//自己的域名</span></code></li><li class="L3"><code><span class="pln"> location </span><span class="pun">/</span><span class="pln"> </span><span class="pun">{</span></code></li><li class="L4"><code><span class="pln"> proxy_pass http</span><span class="pun">:</span><span class="com">//127.0.0.1:3000;</span></code></li><li class="L5"><code><span class="pln"> try_files $uri $uri</span><span class="pun">/</span><span class="pln"> </span><span class="pun">=</span><span class="lit">404</span><span class="pun">;</span><span class="pln"> </span><span class="com">//配置404</span></code></li><li class="L6"><code><span class="pln"> </span><span class="pun">}</span></code></li><li class="L7"><code><span class="pln"> error_page </span><span class="lit">500</span><span class="pln"> </span><span class="lit">502</span><span class="pln"> </span><span class="lit">503</span><span class="pln"> </span><span class="lit">504</span><span class="pln"> </span><span class="pun">/</span><span class="lit">50x</span><span class="pun">.</span><span class="pln">html</span><span class="pun">;</span></code></li><li class="L8"><code><span class="pln"> location </span><span class="pun">/</span><span class="lit">50x</span><span class="pun">.</span><span class="pln">html </span><span class="pun">{</span></code></li><li class="L9"><code><span class="pln"> root </span><span class="pun">/</span><span class="pln">usr</span><span class="pun">/</span><span class="pln">share</span><span class="pun">/</span><span class="pln">nginx</span><span class="pun">/</span><span class="pln">html</span><span class="pun">;</span></code></li><li class="L0"><code><span class="pln"> </span><span class="pun">}</span></code></li><li class="L1"><code><span class="pun">}</span></code></li></ol></pre>
+                <p>以上，最关键的就是修改
+                    <code>location /</code>字段，所有的请求路径只要可以匹配上<code>/</code>，都会被转发到localhost:3000端口（比如我的nodejs项目使用的是3000端口，那么就可以访问我的nodejs项目了）。修改完配置文件一定要记得重启服务。
+                </p>
+                <p><strong>请注意</strong>：nginx 代理 nodejs 没法直接拿到访问者的真实IP地址，需要进行 nginx 配置，然后在http头里面获取“x-forwarded-for”即可。
+                </p>
+                <pre class="prettyprint linenums prettyprinted"
+                    style=""><ol class="linenums"><li class="L0"><code><span class="pln">location </span><span class="pun">/</span><span class="pln"> </span><span class="pun">{</span></code></li><li class="L1"><code><span class="pln">　　proxy_set_header </span><span class="typ">Host</span><span class="pln"> $http_host</span><span class="pun">;</span></code></li><li class="L2"><code><span class="pln">　　proxy_set_header X</span><span class="pun">-</span><span class="typ">Real</span><span class="pun">-</span><span class="pln">IP $remote_addr</span><span class="pun">;</span></code></li><li class="L3"><code><span class="pln">　　proxy_set_header X</span><span class="pun">-</span><span class="typ">Forwarded</span><span class="pun">-</span><span class="typ">For</span><span class="pln"> $proxy_add_x_forwarded_for</span><span class="pun">;</span></code></li><li class="L4"><code><span class="pln">　　proxy_pass http</span><span class="pun">:</span><span class="com">//127.0.0.1:3000/;</span></code></li><li class="L5"><code><span class="pun">}</span></code></li></ol></pre>
+                <p><strong>4.安装git</strong><br>由于我的一些项目有时候会推送到GitHub仓库上，所以可以在云服务器上安装git，这样就可以从GitHub上直接克隆到服务器上了，方便快捷。
+                </p>
+                <pre class="prettyprint linenums prettyprinted"
+                    style=""><ol class="linenums"><li class="L0"><code><span class="pln">yum install git</span></code></li></ol></pre>
+                <p>安装成功后记得一定要配置Git个人信息，依次执行下列命令：<br> git config —global user.name ‘用户名’<br> git config —global
+                    user.email ‘邮件地址’<br>最后执行clone命令，最后记得安装依赖包，这样程序才会跑起来。 </p>
+                <pre class="prettyprint linenums prettyprinted"
+                    style=""><ol class="linenums"><li class="L0"><code><span class="pln">git clone XXXX </span><span class="com">#克隆</span></code></li><li class="L1"><code><span class="pln">npm install </span><span class="com">#安装依赖包</span></code></li></ol></pre>
+                <p><strong>5.安装forever</strong><br>对于nodejs项目，由于是在服务器上，所以如果退出服务器后要保证nodejs在后台运行，可以安装<code>forever</code>，操作也十分简单。
+                </p>
+                <pre class="prettyprint linenums prettyprinted"
+                    style=""><ol class="linenums"><li class="L0"><code><span class="pln">npm install forever </span><span class="pun">-</span><span class="pln">g </span><span class="com">#安装</span></code></li><li class="L1"><code><span class="pln">forever start app</span><span class="pun">.</span><span class="pln">js </span><span class="com">#启动</span></code></li><li class="L2"><code><span class="pln">forever stop app</span><span class="pun">.</span><span class="pln">js </span><span class="com">#关闭</span></code></li><li class="L3"><code><span class="pln">forever restart app</span><span class="pun">.</span><span class="pln">js </span><span class="com">#重启</span></code></li><li class="L4"><code><span class="pln">forever start </span><span class="pun">-</span><span class="pln">l forever</span><span class="pun">.</span><span class="pln">log </span><span class="pun">-</span><span class="pln">o </span><span class="kwd">out</span><span class="pun">.</span><span class="pln">log </span><span class="pun">-</span><span class="pln">e err</span><span class="pun">.</span><span class="pln">log app</span><span class="pun">.</span><span class="pln">js </span><span class="com">#输出日志和错误</span></code></li></ol></pre>
+                <p>欢迎转载，转载请注明出处和作者。</p>
+            </div>
+        </div>
+    </main>
+    <footer class="footer">
+        <div class="footer-link">
+            <div>© 2018 - 2019</div>
+            <div><a target="_blank" href="http://github.com/hcLei"><img src="../../public/images/github.svg"
+                        alt="github"></a></div>
+            <div><a target="_blank"
+                    href="http://mail.qq.com/cgi-bin/qm_share?t=qm_mailme&email=BzY0MTc0Pj81MjFHdnYpZGhq"><img
+                        src="../../public/images/email.svg" alt="email"></a></div>
+        </div>
+        <div class="footer-info">
+            <div><img src="../../public/images/computer.svg" alt="computer"><a target="_blank"
+                    href="http://www.miibeian.gov.cn">渝ICP备16007578号</a></div>
+        </div>
+    </footer>
+</body>
+
+</html>

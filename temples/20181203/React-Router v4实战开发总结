@@ -1,0 +1,226 @@
+React-Router v4实战开发总结
+
+在项目开发之前去了`React-Router v4`的官网大概浏览了一遍知识点，并手动演示了部分demo，然后按照指导进行开发，在开发过程中遇到了一些问题，也借鉴了网上的一些教程，最终整理出来了这篇实战开发总结。
+```
+//引入react-router
+npm install react-router --save
+```
+
+---
+
+默认安装的是最新的4.X版本，根据官网描述，v4使用的是万物皆组件的思想，所有的路由配置不用集中写到一起，而是可以被嵌套到各个代码模块中。react-router v4被拆分成了三个包：
+1. react-router :只提供核心的路由和函数，一般不会使用。
+2. react-router-dom :供浏览器/Web应用使用的API。
+3. react-router-native:供 React Native 应用使用的API。
+
+平时开发使用的时候只需要引入react-router-dom就行了。
+```
+import { BrowserRouter as Router, Route, Link } from "react-router-dom";
+```
+**1. `<Router>`用法**
+
+路由分为browserHistory和hashHistory，两者是有区别的。最明显的区别是 hashHistory 的URL路径是以#开头的。对于 browserHistory 需要server端的支持，因为每次地址改变请求的都是服务端真实的文件路径，不然的话页面总是空白的。但 hashHistory 就不需要了，因为改变的是#号后面的hash值，浏览器并不会重新发起请求。
+
+v4版本的`<Router>`组件只允许存在一个子元素，若有多个则需要使用div包裹起来，不然就会报错：`A <Router> may have only one child element`。正确用法如下(官网示例)
+```
+<Router>
+  <div> //需要加个div
+    <nav>
+      <ul>
+        <li>
+          <Link to="/">Home</Link>
+        </li>
+        <li>
+          <Link to="/about/">About</Link>
+        </li>
+        <li>
+          <Link to="/users/">Users</Link>
+        </li>
+      </ul>
+    </nav>
+
+    <Route path="/" exact component={Index} />
+    <Route path="/about/" component={About} />
+    <Route path="/users/" component={Users} />
+  </div>
+</Router>
+```
+**2. `<Route>`用法**
+
+**2.1:** Route组件的作用就是当一个location匹配路由的path时，渲染某些UI，有三个属性：
+
+>path（string）: 路由匹配路径。没有path属性的Route 总是会被匹配到,通常用于404页面。
+exact（bool）：为true时，则要求路径与location.pathname必须完全匹配，通常用于匹配首页。
+strict（bool）：true的时候，有结尾斜线的路径只能匹配有斜线的location.pathname，用得比较少。
+
+**2.2：**`<Route>`提供三种渲染方式：`<Route component>`、 `<Route render>`、 `<Route children>`。`<Route component>`的优先级要比`<Route render>`高，所以不要在同一个`<Route>`中同时使用。
+
+`<Route component>`：平常用得最多的就是这种了，可以传递参数到子组件中，也可以传递方法到子组件，这样的话可以在子组件中调用父组件的方法来改变父组件的某些值。
+```
+import A from './xx';
+<Route path="/a" params={} handel={} component = { A }/>
+```
+
+`<Route render>`：这种方式对于**内联渲染**和**包装组件**却不引起意料之外的重新挂载特别方便。
+**内联渲染**：有个场景，父组件A有个age属性，可以手动加减，而age的值需要在子组件B中展示，如果采用`<Route component>`，先在B组件的生命周期函数componentDidMount里放个console.log，当A每次进行加减操作时，B组件就会频繁的进行挂载，每次都会执行console.log。
+
+因为`<Route component>`每次都要React.createElement，每次Render生成新的组件，状态前后不一致触发了dom更新。但内联组件可以避免这种情况，代码如下:
+```
+// convenient inline rendering
+class A extends Component {
+    constructor(prop) {
+        this.state = {age: 1}
+    }
+    handleClick = () => {
+        this.setState(state => ({age: state.age + 1}))
+    };
+    render() {
+        return (
+            <div>
+                <div>
+                    {this.state.age}
+                    <button onClick={this.handleClick}>add</button>
+                </div>
+                <div>
+                    <Router>
+                        <Route render={() => (<B age={this.state.age} />)} />
+                    </Router>
+                </div>
+            </div>
+        );
+    }
+}
+```
+**包装组件**：举个例子，比如登陆认证，代码如下：
+```
+//auth.js
+import React, { Component } from 'react';
+import { Route, Redirect } from 'react-router-dom';
+
+class AuthRouter extends Component {
+    render() {
+        const { component: Component, ...rest } = this.props
+        const isAuth
+        return (
+            <Route {...rest} render={props => {
+                return isAuth
+                    ? <Component {...props} />
+                    : <Redirect to="/login" />
+            }} />
+        )
+    }
+}
+
+export default AuthRouter;
+
+//route.js
+import AuthRouter from "./AuthRouter";
+
+<AuthRouter path='/user' component={User} />
+```
+`<Route children>`: 类似于render，但是不管路由是否匹配都会渲染对应组件，平时基本没有使用，具体说明可参考[官网](https://reacttraining.com/react-router/web/api/Route/children-func)。用法如下:
+```
+const OldSchoolMenuLink = ({ label, to, activeOnlyWhenExact }) => (
+    <Route path={to} exact={activeOnlyWhenExact} children={({match}) => (
+        <div className={match ? 'active' : ''}>
+            {match ? '>' : ''}<Link to={to}>{label}</Link>
+        </div>
+    )}></Route>
+);
+```
+**2.3：**上面三种渲染方式都会向下传递三个路由属性(location、match、history)，建议打印到控制台，即可查看具体的信息。
+match: 表示的是如何匹配当前的路由。
+```
+{
+  params: Object,
+  isExact: Boolean,
+  path: String,
+  url: String
+}
+```
+location：表示的是当前所在的位置信息。
+```
+{
+  pathname: '/somewhere'
+  search: '?some=search-string',
+  hash: '#howdy',
+  state: {
+    [userDefined]: true
+  }
+}
+```
+history：主要是关于路由的一些信息和操作。
+```
+length - (number) The number of entries in the history stack
+action - (string) The current action (PUSH, REPLACE, or POP)
+location - (object) The current location.
+push(path, [state]) - (function) Pushes a new entry onto the history stack
+replace(path, [state]) - (function) Replaces the current entry on the history stack
+go(n) - (function) Moves the pointer in the history stack by n entries
+goBack() - (function) Equivalent to go(-1)
+goForward() - (function) Equivalent to go(1)
+block(prompt) - (function) Prevents navigation (see the history docs)
+```
+提醒：在开发过程中有遇到过使用history.push()方法手动控制路由跳转的时候，会提示没有此方法，这时候就要排查当前props是否有history对象了。在v4版本中，使用`<Router>`的时候才会默认传入location、match、history这三个对象，否则就需要一级一级的手动传递。但是官网也提供了`withRouter`组件，可以包装任何自定义组件，当需要用到该三个对象的时候，将组件包一层`withRouter`，就可以拿到需要的路由信息。
+
+**3. `<Switch>`用法**
+
+这个比较好理解，就是只能匹配地址的第一个`<Route>`或者`<Redirect>`，仅仅只能匹配一个路由。举个例子：
+```
+<Switch>
+  <Route exact path="/" component={Home}/>
+  <Route path="/about" component={About}/>
+  <Route path="/:user" component={User}/>
+  <Route component={NotFound}/>
+</Switch>
+```
+若是路由为/about，则只会匹配About，若是路由为/name，则只会匹配User。如果没有`<Switch>`，当路由为/about时，则About和User都会被匹配。而且一般也用于404页面，当所有路径都没有匹配到时，就会匹配NotFound。
+
+**4. `<Redirect>`用法**
+
+用于路由的跳转。当用户访问一个路由，会自动跳转到另一个路由。[官网](https://reacttraining.com/react-router/web/api/Redirect)有详细的各个属性的说明。
+```
+//当to为String时
+<Redirect to="/somewhere/else" />
+//当to为Object时
+<Redirect
+  to={{
+    pathname: "/login",
+    search: "?utm=your+face",
+    state: { referrer: currentLocation }
+  }}
+/>
+```
+使用的时候建议to为Object。举个场景：比如某个页面需要登陆认证才能访问，当没有登陆就去访问的时候，就会跳转到登陆界面，这时可以设置referrer属性的值为当前的路由，登陆成功后就可以根据referrer属性的值跳转到先前需要访问的页面，对于用户体验是非常不错的。
+
+**4. `<Link>`用法**
+指的是跳转，类似平时的href。
+```
+//to（string / object）：要跳转的路径或地址；
+//replace ：为 true 时，点击链接后将使用新地址替换掉访问历史记录里面的原地址；为 false 时，点击链接后将在原有访问历史记录的基础上添加一个新的纪录。默认为 false；
+
+//用法如下
+//当to为string类型的时候
+<Link to="/about">About</Link>
+//当携带参数的时候
+<Link to="/courses?sort=name" />
+
+//当to为obj的时候
+<Link to={{
+  pathname: '/courses',
+  search: '?sort=name',
+  hash: '#the-hash',
+  state: { fromDashboard: true }
+}}/>
+
+// replace 用法
+<Link to="/courses" replace />
+```
+**4. `<NavLink>`用法**
+
+`<NavLink>`是一个特定的`<Link>`类型，会在匹配上当前URL的时候给已经渲染的元素添加样式，一般用于功能菜单切换时显示激活状态，代替开发人员去实现该效果。[官网链接](https://reacttraining.com/react-router/web/api/NavLink)有具体的介绍，看过demo应该就比较清楚了，这里就不详细说了。
+
+----------
+
+
+**总结**：以上就是本次项目开发过程中用到的关于React-Router的一些知识点，踩了很多坑，但是收获颇丰。而且还有很多其他的新特性没有用到，相信在后续的功能扩展开发会继续踩坑，多积累经验。有兴趣的可以去[React-Router官网](https://reacttraining.com/react-router/web/guides/quick-start)看一下，虽然是全英文描述，但是结构层次非常明确，结合demo基本都能看懂。

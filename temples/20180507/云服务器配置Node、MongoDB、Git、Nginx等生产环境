@@ -1,0 +1,142 @@
+云服务器配置Node、MongoDB、Git、Nginx等生产环境
+
+以前陪伴三年的云服务器要到期了，所以最近购置了一台新的腾讯云服务器，使用了腾讯云面向校园大学生的优惠福利。当然云服务器到手后，就要进行一系列的配置，目前打算将一些前端方面的项目上线到新的服务器上，所以需要配置一些相关的环境。
+首先在网上浏览了很多的配置方法，踩了很多坑，最后总结出了一套合适的配置流程。小小的提一下，对于使用windows系统的电脑，强烈安利一款Windows终端命令行神器[cmder](http://cmder.net/)，透明的背景，舒适的字体，界面非常友善，操作十分流畅。
+
+    腾讯云系统版本：centos7.2
+    Node版本： -v 8.9
+    Mongodb数据库版本： -v 3.4
+	
+----------
+
+**1.Node.js安装**
+
+为了避免网上因不同版本造成的不同安装方法引发的问题，可以参考Node.js的官方参考链接 [Installing Node.js via package manager](https://nodejs.org/en/download/package-manager/#enterprise-linux-and-fedora)，V8系列可以使用如下命令行：
+
+    curl --silent --location https://rpm.nodesource.com/setup_8.x | sudo bash -
+
+然后用管理员身份执行下列命令
+
+    yum -y install nodejs
+
+另外在安装的过程中会出现下面这样的几行代码，网上查了一下后大意是提示我们安装用npm编译安装包时可能需要的依赖，最好也一并安装了。
+
+    Optional: install build tools 
+    To compile and install native addons from npm you may also need to install build tools:
+
+在终端中输入安装使用的命令：
+
+    yum install gcc-c++ make
+
+**2.MongoDB数据库安装**
+
+    本次安装的版本: v3.6.0
+安装方法可以参考MongoDB官方的参考链接: [Install MongoDB Community Edition on Red Hat Enterprise or CentOS Linux](https://docs.mongodb.com/manual/tutorial/install-mongodb-on-red-hat/#install-mongodb-community-edition)，按照官方的指引，首先需要配置 yum，执行下列命令，新建并编辑配置文件
+
+    vim  /etc/yum.repos.d/mongodb-org-3.6.repo
+
+
+在其中输入:
+```
+[mongodb-org-3.6]
+name=MongoDB Repository
+baseurl=https://repo.mongodb.org/yum/redhat/$releasever/mongodb-org/3.6/x86_64/
+gpgcheck=1
+enabled=1
+gpgkey=https://www.mongodb.org/static/pgp/server-3.6.asc
+```
+注意本次安装的是3.6版本，若要安装其他版本请参考官网的详细说明配置。然后输入如下命令进行安装：
+
+    sudo yum install -y mongodb-org
+
+最后需要启动服务：
+
+    service mongod start #启动
+    service mongod stop #停止
+    service mongod restart #重启
+
+注意数据库的配置文件路径: `/etc/mongod.conf`。若要自定义数据存储位置和日志的存储位置，可以修改MongoDB的配置文件。
+启动数据库只需要执行命令：`mongo`，然后具体的命令行使用方法可以参考官网。
+
+**3.安装Nginx**
+
+Nginx在服务器上的作用就不在此多说了，接下来展示具体的安装配置方法。
+首先在CentOS系统上安装 Nginx ，得先去添加一个资源库，执行：
+
+    vim /etc/yum.repos.d/nginx.repo
+
+注意nginx.repo文件不存在就会默认创建，进入Vim的编辑模式，然后复制粘贴下面这几行代码，完成以后保存并退出：
+```
+[nginx]
+name=nginx repo
+baseurl=http://nginx.org/packages/centos/$releasever/$basearch/
+gpgcheck=0
+enabled=1
+```
+然后就可以使用 yum 命令去安装 nginx 了
+
+    yum install nginx
+安装完后一定要记得执行`nginx -t`命令测试Nginx的配置文件是不是正确，终端会打印出配置文件是否写得正确，同时也显示了配置文件的路径：
+
+    nginx: the configuration file /etc/nginx/nginx.conf syntax is ok
+    nginx: configuration file /etc/nginx/nginx.conf test is successful
+
+打印如上就说明配置文件成功！最后启动时直接在终端输入命令：
+
+    /usr/sbin/nginx
+
+然后在浏览器里输入主机的ip地址，看看有没有welcome to nginx!的页面。注意，一旦修改了nginx的配置文件之后，为了保证配置生效需要输入重启命令：
+
+    /usr/sbin/nginx -s reload
+
+nginx的配置文件是`/etc/nginx/nginx.conf`，打开之后会看到关于server的配置被写`/etc/nginx/conf.d/default.conf`中，然后被include进了nginx.conf。因此需要修改`default.conf`的信息（有可能修改完后会提示is read-only (add ! to override)，那么需要获取root权限后再进行编辑）：
+```
+server {
+    listen 80;
+    server_name your_name; //自己的域名
+    location / {
+        proxy_pass http://127.0.0.1:3000;
+		try_files $uri $uri/ =404; //配置404
+    }
+    error_page 500 502 503 504 /50x.html;
+    location /50x.html {
+        root /usr/share/nginx/html;
+    }
+}
+```
+以上，最关键的就是修改 `location /`字段，所有的请求路径只要可以匹配上`/`，都会被转发到localhost:3000端口（比如我的nodejs项目使用的是3000端口，那么就可以访问我的nodejs项目了）。修改完配置文件一定要记得重启服务。
+
+**请注意**：nginx 代理 nodejs 没法直接拿到访问者的真实IP地址，需要进行 nginx 配置，然后在http头里面获取“x-forwarded-for”即可。
+```
+location / {
+　　proxy_set_header Host $http_host;
+　　proxy_set_header X-Real-IP $remote_addr;
+　　proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+　　proxy_pass http://127.0.0.1:3000/;
+}
+```
+
+**4.安装git**
+由于我的一些项目有时候会推送到GitHub仓库上，所以可以在云服务器上安装git，这样就可以从GitHub上直接克隆到服务器上了，方便快捷。
+
+    yum install git
+安装成功后记得一定要配置Git个人信息，依次执行下列命令：
+    git config --global user.name '用户名'
+    git config --global user.email '邮件地址'
+最后执行clone命令，最后记得安装依赖包，这样程序才会跑起来。
+
+    git clone XXXX  #克隆
+    npm install #安装依赖包
+
+**5.安装forever**
+对于nodejs项目，由于是在服务器上，所以如果退出服务器后要保证nodejs在后台运行，可以安装`forever`，操作也十分简单。
+
+    npm install forever -g  #安装
+    forever start app.js  #启动
+    forever stop app.js  #关闭
+    forever restart app.js  #重启
+    forever start -l forever.log -o out.log -e err.log app.js  #输出日志和错误
+
+
+
+欢迎转载，转载请注明出处和作者。

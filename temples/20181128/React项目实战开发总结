@@ -1,0 +1,173 @@
+React项目实战开发总结
+
+最近总算结束了几个月的需求爆发期，后期主要是维护工作和少量的需求变更。打算利用业余时间学习一些新技术，提高自身能力，正好准备跟朋友合作开发新的项目，前端技术栈选择的是当前流行的React框架，在开发过程中，遇到了很多的问题，踩了很多的坑，也积累了不少的经验，完成了前期功能的开发，后续也在逐渐的扩展新功能，可点击[网站主页](http://www.depclothes.com/)前往体验。
+
+项目初始化使用的是React官网的脚手架工具`create-react-app`进行搭建,并搭配如下技术进行快速开发：
+
+* [React-Router](https://reacttraining.com/react-router/web/guides/quick-start)（v4）
+* [Antd](https://ant.design/)(UI组件)
+* [Axios](https://www.npmjs.com/package/axios)（HTTP请求）
+* [高德地图开发者API](https://lbs.amap.com/)
+
+### 1.自定义配置
+项目中使用了 Ant Design UI组件，当使用的时候，默认是一次性引入所有的样式，没有体现组件化的思想，需要保证样式也能按需引入，使用什么组件，就引入对应的样式。由于项目直接使用的`create-react-app`脚手架工具初始化的，webpack配置文件默认被隐藏了，不过官网提供了`npm run eject`命令将配置文件暴露出来方便我们自定义配置，不过该命令操作是不可逆的，也就是说暴露后就没法隐藏了。
+
+通过网上查资料，我们可以使用[react-app-rewired](https://github.com/timarney/react-app-rewired) （一个对 create-react-app 进行自定义配置的社区解决方案）,可以不用暴露webpack配置文件，而是通过建立新的js文件去添加或者覆盖存在的配置项。
+
+    npm install react-app-rewired --save
+安装后，然后对package.json文件进行修改：
+
+    /* package.json */
+    "scripts": {
+    -   "start": "react-scripts start",
+    +   "start": "react-app-rewired start",
+    -   "build": "react-scripts build",
+    +   "build": "react-app-rewired build",
+    -   "test": "react-scripts test",
+    +   "test": "react-app-rewired test",
+    }
+然后在项目根目录创建一个 config-overrides.js 用于修改默认配置：
+
+    const { injectBabelPlugin } = require('react-app-rewired');
+    
+    module.exports = function override(config, env) {
+        config = injectBabelPlugin(
+            ['import', { libraryName: 'antd', libraryDirectory: 'es', style: 'css' }],
+            config,
+        );
+        return config;
+    };
+
+上述配置后，就能实现组件样式也能按需引入了。如果不熟悉怎么配置，可以手动把config打印出来仔细看看，这样就清楚怎么去配置了。
+
+### 2.引入地图实现坐标展示
+在本次项目中，需要将某个IP对应的经纬度坐标标记到地图上进行展示。决定使用高德地图，首先需要去高德地图开发者平台申请key，然后引入script文件。
+
+    <script type="text/javascript" src="https://webapi.amap.com/maps?v=1.4.10&key=xxx&callback"></script>
+接下来有两种配置方式：
+1.直接使用window.AMap。注意，若是直接使用AMap，则会报undefined，因为该变量是直接绑定在window作用域下的。
+```
+let map = new window.AMap.Map('searchMap', {
+                    zoom: 11,//级别
+                    center: [res.geoinfo.location.lon, res.geoinfo.location.lat],//中心点坐标
+                    viewMode: '3D'//使用3D视图
+                });
+```
+2.通过webpack配置，在需要使用的地方直接import就可以了
+```
+//config-overrides.js
+const { injectBabelPlugin } = require('react-app-rewired');
+
+module.exports = function override(config, env) {
+    config = injectBabelPlugin(
+        ['import', { libraryName: 'antd', libraryDirectory: 'es', style: 'css' }],
+        config,
+    );
+    config.externals = {'AMap': 'AMap'}
+    return config;
+};
+//map.js
+import AMap from 'AMap';
+
+let map = new AMap.Map('searchMap', {
+                    zoom: 11,//级别
+                    center: [res.geoinfo.location.lon, res.geoinfo.location.lat],//中心点坐标
+                    viewMode: '3D'//使用3D视图
+                });
+```
+
+### 3.优化HTTP请求
+1.Axios 是一个基于 promise（异步流程控制） 的 HTTP 库，底层都已经封装好了，可以快速使用各种请求。感兴趣的可以去[官网](https://www.npmjs.com/package/axios)看看，API文档非常简洁明了，直接安装就可以使用。
+
+    npm install axios --save
+
+2.随着项目需求的增加，代码也会越来越多，对于重复的代码需要进行优化。在HTTP请求中，可以将get、post、put、delete等请求方法放到一个文件中，这样既可以在发起请求前实现某些操作(比如添加认证Header等)，也可以在拿到请求结果后优先进行某些处理（比如某些错误的状态码统一进行提示，或者认证过期需要跳转到登陆界面），然后让请求结果进入具体的业务逻辑中。并且请求的URL或者某些变量等，都可以统一进行配置，统一进行修改，避免去多个具体的业务文件中依次更改。下面列出http配置文件部分代码（部分代码因为业务安全做了修改和删减）：
+```
+// http外层统一配置处理
+import axios from "axios";
+import { message } from 'antd';
+
+export const baseURL = {
+    communityAPI: "http://xxx",
+    hostWebAPI: "http://xxx"
+}
+axios.defaults.timeout = 30000;
+
+// 添加请求拦截器
+axios.interceptors.request.use(function (config) {
+    // 在发送请求之前做些什么
+    config.headers["token"] = localStorage.getItem("user_token");
+    return config;
+}, function (error) {
+    // 对请求错误做些什么
+    return Promise.reject(error);
+});
+
+// 添加响应拦截器
+axios.interceptors.response.use(function (response) {
+    // 对响应数据做点什么
+    return response;
+
+}, function (error) {
+    // 对响应错误做点什么
+    message.error(error.response.data.message);
+    //需要认证则跳转
+    if(error.response.status === 401){
+        window.location.href = "/account/login";
+    }
+});
+
+// get请求
+export function getServer(url, params) {
+    return new Promise((resolve, reject) => {
+        axios.get(url, { params })
+            .then(function (response) {
+                resolve(response.data);
+            })
+            .catch(function (error) {
+                reject(error);
+            })
+    })
+}
+
+// post请求
+export function postServer(url, data) {
+    return new Promise((resolve, reject) => {
+        axios.post(url, data)
+            .then(function (response) {
+                resolve(response.data);
+            })
+            .catch(function (error) {
+                reject(error);
+            })
+    })
+}
+
+// patch请求
+export function patchServer(url, data) {
+    return new Promise((resolve, reject) => {
+        axios.patch(url, data)
+            .then(function (response) {
+                resolve(response.data);
+            })
+            .catch(function (error) {
+                reject(error);
+            })
+    })
+}
+
+// delete请求
+export function deleteServer(url, params) {
+    return new Promise((resolve, reject) => {
+        axios.delete(url, { params })
+            .then(function (response) {
+                resolve(response.data);
+            })
+            .catch(function (error) {
+                reject(error);
+            })
+    })
+}
+```
+### 4.路由配置
+对于单页面应用，路由将所有界面联系到了一起，如何使用正确的使用路由是非常重要的，该项目使用的是`React-Router v4`，是当前的最新版本，详情浏览下一篇文章-React-Router v4实战开发总结。

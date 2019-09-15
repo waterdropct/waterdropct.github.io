@@ -1,0 +1,150 @@
+使用python采集全球省(州)、市、区(县)主要城市的坐标 
+
+最近有个内部需求，将满足业务条件的城市在地图上标记出来，也就是实现一个简单的地图，然后用标记点展示部分城市。起初打算将echarts和百度地图API相结合，但是UCD反馈说不需要这么复杂，只需要有一个国家之间的大概轮廓，然后能展示城市名称就行。
+
+------
+
+
+### 1. 使用echarts画出地图上国家之间的边界轮廓
+首先需要将全球213个国家和地区的轮廓画出来，[echarts](https://echarts.baidu.com/download-map.html)现在已经不提供geoJSON地图格式的数据文件供大家下载，所以只能在网上找了份别人共享的文件，然后根据echarts官网的[地图绘制教程](https://echarts.baidu.com/option.html#geo),模拟一些城市坐标数据，就可以将其标记到地图上。这里就暂时不列出具体代码了，有兴趣的可以去官网研究地图实例。
+
+### 2. 采集全球省(州)、市、区(县)主要城市的名称
+全球主要城市数量非常庞大，没法独自去收集，只能采取变通的方法。平时我们在使用QQ或者微信的时候，可以设置所在的国家和地区，通过网上搜索，发现腾讯QQPC端有国内版本和国外版本，可以在软件目录中的I18N目录下分别找到对应的的XML文档，有中文版的城市和英文版的城市。国内城市名称可以使用中文版，国外城市名称可以使用英文版。
+
+### 3. 选取合适的城市坐标数据API采集接口
+目前内部暂时没有全球主要城市名称和经纬度一一对应的数据，后台开发人员抱怨说网上找不到现成的数据，但是我以前用过百度地图部分API，查了下百度地图开发文档中的[地理编码](http://lbsyun.baidu.com/index.php?title=webapi/guide/webservice-geocoding)服务，无奈该服务只支持根据国内的城市名称查询对应的经纬度数据，不支持国外城市的查询服务(包括高德地图等国内服务商都不支持)，然后又去查阅了google地图服务和必应地图服务的开发者文档，最后决定使用[必应地图地理编码](https://docs.microsoft.com/en-us/bingmaps/rest-services/locations/find-a-location-by-query)服务(goolge地图服务需要绑定信用卡并且只免费一年),但是必应地图对国内的部分中文城市支持不友好，所以采取两套数据采集方案：**国内城市坐标采集使用百度地图API**，**国外城市坐标采集使用必应地图API**。
+
+### 3. 使用python采集主要城市的坐标数据
+内部提供的Python语法是2.7，暂时无法使用3.X版本，Python语法学习可以访问[廖雪峰的教程](https://www.liaoxuefeng.com/wiki/0014316089557264a6b348958f449949df42a6d3a2e542c000)，然后开始代码实现采集坐标。
+1.首先需要将XML文档转为JSON数据格式文档
+
+    #! /usr/bin/env python 
+    # -*- coding: utf-8 -*- 
+    import xmltodict, json 
+    import sys 
+    reload(sys) 
+    sys.setdefaultencoding('utf-8')  
+    with open('en.xml','r') as f:     
+    	str_xml = str(f.read())  
+    	str_xml = str_xml.replace('&','&#38;')  # xml格式不能有"&"符号 
+    	doc = xmltodict.parse(str_xml) 
+    	f=open('encity.json','w') 
+    	f.write(json.dumps(doc) +"\n") 
+    	f.close()   
+        
+
+2.然后读取JSON数据，整理成国家---省(直辖市、州)--市（区县）类型的格式，实现一一对应，比如中国---重庆市---万州区、中国---湖北省---武汉市
+
+    #! /usr/bin/env python 
+    # -*- coding: utf-8 -*- 
+    
+    f=open('encity.json','r') 
+    w=open('encity.md','w') 
+    data = json.load(f) 
+    for countryData in data['Location']['CountryRegion']: 	
+    	w.write(countryData['@Name'] + '-----country-----' +"\n") 	
+    	if ('State' in countryData and type(countryData['State']).__name__=='dict' and len(countryData['State']) > 0): 		
+    		for (state,stateData) in countryData['State'].items(): 			
+    			if (state == "@Name"): 				
+    				w.write(stateData + '-----state-----' + countryData['@Name'] + '-----country-----' +"\n") 			
+    			if (state == "City"): 				
+    				for cityData in stateData: 					
+    					if('@Name' in cityData): 						
+    						w.write(cityData['@Name'] + '-----city-----' + countryData['@Name'] + '-----country-----' +"\n") 	
+    	if ('State' in countryData and len(countryData['State']) > 0 and  type(countryData['State']).__name__=='list'): 		
+    		for stateData in countryData['State']: 			
+    			w.write(stateData['@Name'] + '-----state-----' + countryData['@Name'] + '-----country-----' +"\n") 			
+    			if ('City' in stateData and  type(stateData['City']).__name__=='list'): 				
+    				for cityData in stateData['City']: 					
+    					if('@Name' in cityData): 						
+    						w.write(cityData['@Name'] + '-----city-----' + countryData['@Name'] + '-----country-----' +"\n") 			
+    			if ('City' in stateData and  type(stateData['City']).__name__=='dict'): 				
+    				for city,cityData in stateData['City'].items(): 					
+    					if(city == '@Name'): 						
+    						w.write(cityData + '-----city-----' + countryData['@Name'] + '-----country-----' +"\n") 
+    w.close()  
+    f.close() 
+3.使用百度地图地理编码服务API采集国内主要城市坐标
+
+    #!/usr/bin/env python
+    # -*- coding: utf-8 -*-  
+    import requests 
+    import json 
+    import re 
+    import sys 
+    reload(sys) 
+    sys.setdefaultencoding('utf-8')  
+    headers = {"User-Agent": "Mozilla/5.0 (Windows NT 6.1; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/71.0.3578.98 Safari/537.36"} 
+    proxies = {'http': xxx, 'https': xxx}  #内网限制，需要使用代理
+    url = 'http://api.map.baidu.com/geocoder/v2/'  
+    fr = open("zhcity.md","r") 
+    fw = open("zhcitypoint.md", "w") 
+    for line in fr: 	
+    	item=line.split('-----')[0] 	
+    	params = {'address': item, 'ak': XXX, 'output': 'json'} 	#ak需要自己去百度地图开发者平台申请
+    	res = requests.get(url, params=params, headers=headers, proxies=proxies) 	
+    	pattern1 = re.compile(r'"lng":([\d\.]+),') 	
+    	res1 = pattern1.findall(res.content) 	
+    	pattern2 = re.compile(r'"lat":([\d\.]+)\}') 	
+    	res2 = pattern2.findall(res.content) 	
+    	if (len(res1) > 0 and len(res2) > 0): 		
+    		fw.write(line.strip('\n') + '[' + res1[0] + ',' + res2[0] + ']' + "\n") 	
+    	else: 		
+    		fw.write(line.strip('\n') + '[' + ']' +"\n") 
+    fr.close() 
+    fw.close()
+
+4.使用必应地图地理编码服务API采集国外主要城市坐标
+
+    #!/usr/bin/env python
+    # -*- coding: utf-8 -*-  
+    from threading import Thread, Lock 
+    import requests 
+    import json 
+    import re 
+    import sys  
+    reload(sys) 
+    sys.setdefaultencoding('utf-8')  
+    headers = {     "User-Agent": "Mozilla/5.0 (Windows NT 6.1; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/71.0.3578.98 Safari/537.36"} 
+    proxies = {'http': xxx, 'https': xx}  #内网限制，需要使用代理
+    url = 'http://dev.virtualearth.net/REST/v1/Locations'  
+    fr = open("encity1.md", "r") 
+    fw = open("encitypoint1.md", "a") 
+    items = [] 
+    a = 0 
+    for line in fr:     
+    	item = line.split('-----')[0]     
+    	items.append(item)   
+    	def query1():     
+    		global a     
+    		global items     
+    		if (len(items) <= a):         
+    			return     
+    		lock.acquire()     #需要对变量a递增，为了避免多个线程同时读取，需要在+1的时候锁定，+1结束后再释放
+    		line = items[a]     
+    		params = {'q': items[a], 'key': XXX}     #key需要自己去必应地图开发者平台申请
+    		a += 1     
+    		lock.release()     
+    		res = requests.get(url, params=params, headers=headers, proxies=proxies)     
+    		pattern1 = re.compile(r'"coordinates":(\[[-\d\.,]+\])')     
+    		result = pattern1.findall(res.text)     
+    		if (len(result) > 0):         
+    			fw.write(line + "-----" + result[0] + "\n")     
+    		else:         
+    			fw.write(line + "-----" + '[' + ']' + "\n")  
+    		lock = Lock() 
+    		
+    t1 = Thread(target=query1, name='t1') #必应API接口非常慢，内网采集时每次请求大概需要一分钟，所以需要开多个线程同时跑
+    t1.start()  
+    while len(items) > a:     
+    	if (t1.isAlive() is False):         #当线程被kill后，需要重新建立一个
+    		t1 = Thread(target=query1, name='t1')         
+    		t1.start()     
+    	else:         
+    		query1()
+5.将整理出来的数据发给后台人员，导入到数据库即可。在实际应用后，还是有少量的数据坐标有偏差。比如必应地图采集城市名为white Russia时，实际采集的是Russia的坐标，真正的白俄罗名称是Belarus。最后就可以通过接口拿到想要的城市名称和经纬度坐标，结合Echarts实现展示功能。
+
+### 4. 总结
+1.这次的需求需要用到大量的经纬度坐标，即使内部或者网上没有现成的数据，也得想办法灵活的实现，平时多浏览一些技术论坛和文章，技术Ideal自然就多起来了。
+2.在Pyhon代码实现的过程中，光看教程是不够的，还要结合实际需求，一些Python语法报错，需要去网上搜索报错原因，然后进行纠正，多踩点坑就慢慢熟练起来了。
+3.利用Python也可以做一些其他自动化的工作，平时开发中我也会做一些数据比对的工作，使用Python提供的读写Excel插件和数据库插件，利用SQL语句动态的从数据库读取每条数据，然后跟Excel中的数据进行比对，最后输出一份含有比对结果的Excel文档。

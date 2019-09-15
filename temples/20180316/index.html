@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+    <title>常用Git操作命令整理</title>
+    <link rel='stylesheet' href='../../public/markdown.min.css' />
+    <link rel='stylesheet' href='../../public/style.css' />
+    <link rel="icon" type="image/png" href="../../public/images/icon.png" sizes="32x32">
+    <meta name="description"
+        content="个人博客网站，专注于分享技术知识，包括但不限于HTML5、CSS3、JavaScript、Nodejs、Linux、Python、Nginx、React、Vue、Angular">
+    <meta name="keywords"
+        content="个人、博客、技术、互联网、分享、笔记、前端开发、HTML5、CSS3、JavaScript、Nodejs、Linux、Python、Nginx、React、Vue、Angular">
+</head>
+
+<body>
+    <header class="header">
+        <div class="header-inner">
+            <div class="header-title">
+                <a href="../../">致力于分享与进步</a>
+            </div>
+        </div>
+    </header>
+    <main class="main">
+        <div class="main-inner">
+            <div class="content-item">
+                <p class="content-title"><a>常用Git操作命令整理</a></p>
+                <p class="content-createTime"><img src="../../public/images/date.svg" alt="date">发表于 2018-03-16</p>
+            </div>
+            <div class="content-description">
+                <p><strong>秋招结束后放松了几个月，准备写个小项目的时候，发现一些常用的 Git 操作都忘了。<a
+                            href="https://git-scm.com/book/en/v2">官方Git文档</a>有中文版本，内容比较详细，但不适合快速查找操作命令，所以就整理了一下.
+                    </strong></p>
+                <p><strong> 仓库操作 </strong></p>
+                <pre class="prettyprint linenums prettyprinted"
+                    style=""><ol class="linenums"><li class="L0"><code><span class="pun">克隆仓库：</span><span class="pln">$ git clone git</span><span class="pun">:</span><span class="com">//github.com/jquery/jquery.git</span></code></li><li class="L1"><code><span class="pun">查看远程仓库：</span><span class="pln">$ git remote </span><span class="pun">-</span><span class="pln">v</span></code></li><li class="L2"><code><span class="pun">添加远程仓库：</span><span class="pln">$ git remote add </span><span class="pun">[</span><span class="pln">name</span><span class="pun">]</span><span class="pln"> </span><span class="pun">[</span><span class="pln">url</span><span class="pun">]</span></code></li><li class="L3"><code><span class="pun">删除远程仓库：</span><span class="pln">$ git remote rm </span><span class="pun">[</span><span class="pln">name</span><span class="pun">]</span></code></li><li class="L4"><code><span class="pun">修改远程仓库：</span><span class="pln">$ git remote </span><span class="kwd">set</span><span class="pun">-</span><span class="pln">url </span><span class="pun">--</span><span class="pln">push</span><span class="pun">[</span><span class="pln">name</span><span class="pun">][</span><span class="pln">newUrl</span><span class="pun">]</span></code></li><li class="L5"><code><span class="pun">拉取远程仓库：</span><span class="pln">$ git pull </span><span class="pun">[</span><span class="pln">remoteName</span><span class="pun">]</span><span class="pln"> </span><span class="pun">[</span><span class="pln">localBranchName</span><span class="pun">]</span></code></li><li class="L6"><code><span class="pun">推送远程仓库：</span><span class="pln">$ git push </span><span class="pun">[</span><span class="pln">remoteName</span><span class="pun">]</span><span class="pln"> </span><span class="pun">[</span><span class="pln">localBranchName</span><span class="pun">]</span></code></li></ol></pre>
+                <p><strong> 分支操作 </strong></p>
+                <pre class="prettyprint linenums prettyprinted"
+                    style=""><ol class="linenums"><li class="L0"><code><span class="pun">查看本地分支：</span><span class="pln">$ git branch</span></code></li><li class="L1"><code><span class="pun">查看远程分支：</span><span class="pln">$ git branch </span><span class="pun">-</span><span class="pln">r</span></code></li><li class="L2"><code><span class="pun">创建本地分支：</span><span class="pln">$ git branch </span><span class="pun">[</span><span class="pln">branchName</span><span class="pun">]</span><span class="pln"> </span><span class="pun">----注意新分支创建后不会自动切换为当前分支</span></code></li><li class="L3"><code><span class="pun">切换分支：</span><span class="pln">$ git checkout </span><span class="pun">[</span><span class="pln">branchName</span><span class="pun">]</span></code></li><li class="L4"><code><span class="pun">创建新分支并立即切换到新分支：</span><span class="pln">$ git checkout </span><span class="pun">-</span><span class="pln">b </span><span class="pun">[</span><span class="pln">branchName</span><span class="pun">]</span></code></li><li class="L5"><code><span class="pun">合并分支：</span><span class="pln">$ git merge </span><span class="pun">[</span><span class="pln">branchName</span><span class="pun">]</span><span class="pln"> </span><span class="pun">----将名称为[</span><span class="pln">branchName</span><span class="pun">]的分支与当前分支合并</span></code></li><li class="L6"><code><span class="pun">删除本地分支：</span><span class="pln">$ git branch </span><span class="pun">-</span><span class="pln">d </span><span class="pun">[</span><span class="pln">branchName</span><span class="pun">]</span><span class="pln"> </span><span class="pun">----</span><span class="pln"> </span><span class="pun">-</span><span class="pln">d</span><span class="pun">选项只能删除已经参与了合并的分支，对于未有合并的分支是无法删除的。如果想强制删除一个分支，可以使用-</span><span class="pln">D</span><span class="pun">选项</span></code></li><li class="L7"><code><span class="pun">删除远程分支：</span><span class="pln">$ git push </span><span class="pun">[</span><span class="pln">remoteName</span><span class="pun">]</span><span class="pln"> </span><span class="pun">--</span><span class="kwd">delete</span><span class="pln"> </span><span class="pun">[</span><span class="pln">branchName</span><span class="pun">]</span></code></li><li class="L8"><code><span class="pun">本地分支</span><span class="pln">push</span><span class="pun">到远程：</span><span class="pln">$ git push </span><span class="pun">[</span><span class="pln">remoteName</span><span class="pun">]</span><span class="pln"> </span><span class="pun">[</span><span class="pln">branchName</span><span class="pun">]</span></code></li><li class="L9"><code><span class="pun">本地分支</span><span class="pln">push</span><span class="pun">到远程还未创建的分支：</span><span class="pln">$ git push </span><span class="pun">[</span><span class="pln">remoteName</span><span class="pun">]</span><span class="pln"> </span><span class="pun">[</span><span class="pln">branchName</span><span class="pun">]:[</span><span class="pln">branchName</span><span class="pun">]</span></code></li></ol></pre>
+                <p><strong> 版本操作 </strong></p>
+                <pre class="prettyprint linenums prettyprinted"
+                    style=""><ol class="linenums"><li class="L0"><code><span class="pun">查看当前仓库文件状态：</span><span class="pln">$ git status</span></code></li><li class="L1"><code><span class="pun">将修改文件保存到暂存区：</span><span class="pln">$ git add </span><span class="pun">[</span><span class="pln">file </span><span class="kwd">or</span><span class="pln"> files</span><span class="pun">]</span></code></li><li class="L2"><code><span class="pun">将更改记录提交到存储库：</span><span class="pln">$ git commit </span><span class="pun">-</span><span class="pln">m </span><span class="pun">[</span><span class="pln">msg</span><span class="pun">]</span></code></li><li class="L3"><code><span class="pun">版本回退：</span><span class="pln">$ git reset </span><span class="pun">--</span><span class="pln">hard </span><span class="pun">[</span><span class="pln">commitId</span><span class="pun">]</span></code></li><li class="L4"><code></code></li><li class="L5"><code><span class="pun">代码储藏：</span><span class="pln">$ git stash </span><span class="pun">----</span><span class="pln"> </span><span class="pun">比如正在当前分支操作，需要临时切换到其他分支操作，但是又不想</span><span class="pln">commit</span><span class="pun">当前的变动，就可以使用该功能，具体的用法见（</span><span class="pln">https</span><span class="pun">:</span><span class="com">//git-scm.com/book/zh/v1/Git-%E5%B7%A5%E5%85%B7-%E5%82%A8%E8%97%8F%EF%BC%88Stashing%EF%BC%89）</span></code></li><li class="L6"><code></code></li><li class="L7"><code><span class="pun">查看提交历史：</span><span class="pln">$ git log </span><span class="pun">[-</span><span class="pln">p </span><span class="pun">|</span><span class="pln"> </span><span class="pun">-</span><span class="pln">n</span><span class="pun">]</span><span class="pln"> </span><span class="pun">----</span><span class="pln"> </span><span class="pun">-</span><span class="pln">p</span><span class="pun">参数用来显示每次提交的内容差异，</span><span class="pln"> </span><span class="pun">-</span><span class="pln">n</span><span class="pun">参数表示只显示最近的</span><span class="pln">n</span><span class="pun">次提交，</span><span class="pln"> </span><span class="pun">访问(</span><span class="pln">https</span><span class="pun">:</span><span class="com">//git-scm.com/book/zh/v2/Git-%E5%9F%BA%E7%A1%80-%E6%9F%A5%E7%9C%8B%E6%8F%90%E4%BA%A4%E5%8E%86%E5%8F%B2)可以查看更多可配置参数</span></code></li></ol></pre>
+                <p><strong> 常见问题 </strong></p>
+                <p><strong>1.由于某些原因需要回退代码</strong>：先 git log操作，找到需要回退到的版本以及对应的commitId(一般取前6位就ok了)，然后执行 git reset —hard
+                    [commitId]。</p>
+                <p><strong>2.代码冲突</strong>：不管是pull远程仓库的代码还是merge分支，如果出现冲突，在解决冲突后需要 commit 一次，才能继续后面的操作。 </p>
+                <p><strong>3.修改了文件部分内容后又不想要这些修改了</strong>：无论该文件的修改状态是处于工作区还是暂存区，执行 git status，然后直接看控制台输出的提示就清楚如何操作了。</p>
+                <p><strong>4.子模块</strong>：当你在一个项目上工作时，你需要在其中使用另外一个项目。也许它是一个第三方开发的库或者是你独立开发和并在多个父项目中使用的。这个场景下一个常见的问题产生了：你想将两个项目单独处理但是又需要在其中一个中使用另外一个。目前我还遇到过这种场景，不过可前往<a
+                        href="https://git-scm.com/book/zh/v2/Git-%E5%B7%A5%E5%85%B7-%E5%AD%90%E6%A8%A1%E5%9D%97">Git官方手册</a>了解更多。
+                </p>
+                <p><strong>最后强烈推荐使用 <a href="https://code.visualstudio.com/">Visual Studio
+                            Code</a>代码开发工具，装上各种插件配合使用，功能非常强大，效果顶呱呱。特别是Git History插件，可视化界面，Diff对比，快速定位，简直Git神器。</strong>
+                </p>
+                <p>欢迎转载，转载请注明出处。</p>
+            </div>
+        </div>
+    </main>
+    <footer class="footer">
+        <div class="footer-link">
+            <div>© 2018 - 2019</div>
+            <div><a target="_blank" href="http://github.com/hcLei"><img src="../../public/images/github.svg"
+                        alt="github"></a></div>
+            <div><a target="_blank"
+                    href="http://mail.qq.com/cgi-bin/qm_share?t=qm_mailme&email=BzY0MTc0Pj81MjFHdnYpZGhq"><img
+                        src="../../public/images/email.svg" alt="email"></a></div>
+        </div>
+        <div class="footer-info">
+            <div><img src="../../public/images/computer.svg" alt="computer"><a target="_blank"
+                    href="http://www.miibeian.gov.cn">渝ICP备16007578号</a></div>
+        </div>
+    </footer>
+</body>
+
+</html>
